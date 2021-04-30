@@ -76,6 +76,7 @@ class AtomVecCoccus : public AtomVec {
   double *radius,*rmass;
   double *biomass,*outer_radius,*outer_mass;
   double **omega,**torque;
+  int *ancestor;
   int radvary;
 };
 

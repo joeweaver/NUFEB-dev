@@ -131,7 +131,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   outer_mass = NULL;
   biomass = NULL;
   bacillus = NULL;
-  
+  ancestor = NULL;
+
   // molecular info
 
   bond_per_atom = extra_bond_per_atom = 0;
@@ -338,6 +339,7 @@ Atom::~Atom()
   memory->destroy(bacillus);
   memory->destroy(biomass);
   
+  memory->destroy(ancestor);
   memory->destroy(nspecial);
   memory->destroy(special);
 

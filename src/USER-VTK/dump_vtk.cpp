@@ -84,6 +84,7 @@ enum{X,Y,Z, // required for vtk, must come first
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
+     ANCESTOR,
      VARIABLE,COMPUTE,FIX,INAME,DNAME,
      ATTRIBUTES}; // must come last
 enum{LT,LE,GT,GE,EQ,NEQ};
@@ -1544,6 +1545,10 @@ int DumpVTK::parse_fields(int narg, char **arg)
       pack_choice[TYPE] = &DumpVTK::pack_type;
       vtype[TYPE] = Dump::INT;
       name[TYPE] =arg[iarg];
+    } else if (strcmp(arg[iarg],"ancestor") == 0) {
+      pack_choice[ANCESTOR] = &DumpVTK::pack_ancestor;
+      vtype[ANCESTOR] = Dump::INT;
+      name[ANCESTOR] =arg[iarg];
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[ELEMENT] = &DumpVTK::pack_type;
       vtype[ELEMENT] = Dump::STRING;

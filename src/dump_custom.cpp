@@ -1183,7 +1183,9 @@ int DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[i] = &DumpCustom::pack_mass;
       vtype[i] = Dump::DOUBLE;
-
+    } else if (strcmp(arg[iarg],"ancestor") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ancestor;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"x") == 0) {
       pack_choice[i] = &DumpCustom::pack_x;
       vtype[i] = Dump::DOUBLE;
@@ -2143,6 +2145,18 @@ void DumpCustom::pack_procp1(int n)
 {
   for (int i = 0; i < nchoose; i++) {
     buf[n] = me+1;
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ancestor(int n)
+{
+  int *type = atom->ancestor;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = type[clist[i]];
     n += size_one;
   }
 }

@@ -142,6 +142,7 @@ class DumpCustom : public Dump {
   void pack_type(int);
   void pack_mass(int);
 
+  void pack_ancestor(int);
   void pack_x(int);
   void pack_y(int);
   void pack_z(int);

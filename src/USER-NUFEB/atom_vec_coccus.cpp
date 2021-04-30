@@ -92,6 +92,8 @@ void AtomVecCoccus::grow(int n)
   omega = memory->grow(atom->omega,nmax,3,"atom:omega");
   torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
 
+  ancestor = memory->grow(atom->ancestor,nmax,"atom:ancestor");
+  
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -108,6 +110,7 @@ void AtomVecCoccus::grow_reset()
   x = atom->x; v = atom->v; f = atom->f;
   radius = atom->radius; rmass = atom->rmass;
   biomass = atom->biomass;
+  ancestor = atom->ancestor;
   outer_radius = atom->outer_radius; outer_mass = atom->outer_mass;
   omega = atom->omega; torque = atom->torque;
 }
@@ -132,6 +135,7 @@ void AtomVecCoccus::copy(int i, int j, int delflag)
   radius[j] = radius[i];
   rmass[j] = rmass[i];
   biomass[j] = biomass[i];
+  ancestor[j] = ancestor[i];
   outer_radius[j] = outer_radius[i];
   outer_mass[j] = outer_mass[i];
   omega[j][0] = omega[i][0];
@@ -163,6 +167,7 @@ int AtomVecCoccus::pack_comm(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -184,6 +189,7 @@ int AtomVecCoccus::pack_comm(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
     }
   }
 
@@ -210,6 +216,7 @@ int AtomVecCoccus::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -238,6 +245,7 @@ int AtomVecCoccus::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = biomass[j];
 	buf[m++] = outer_radius[j];
 	buf[m++] = outer_mass[j];
+	//buf[m++] = ancestor[j];
 	buf[m++] = v[j][0];
 	buf[m++] = v[j][1];
 	buf[m++] = v[j][2];
@@ -259,6 +267,7 @@ int AtomVecCoccus::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = biomass[j];
 	buf[m++] = outer_radius[j];
 	buf[m++] = outer_mass[j];
+	//buf[m++] = ancestor[j];
 	if (mask[i] & deform_groupbit) {
 	  buf[m++] = v[j][0] + dvx;
 	  buf[m++] = v[j][1] + dvy;
@@ -292,6 +301,7 @@ int AtomVecCoccus::pack_comm_hybrid(int n, int *list, double *buf)
     buf[m++] = biomass[j];
     buf[m++] = outer_radius[j];
     buf[m++] = outer_mass[j];
+    //buf[m++] = ubuf(ancestor[j]).d;
   }
   return m;
 }
@@ -313,6 +323,7 @@ void AtomVecCoccus::unpack_comm(int n, int first, double *buf)
     biomass[i] = buf[m++];
     outer_radius[i] = buf[m++];
     outer_mass[i] = buf[m++];
+    //ancestor[i] = (int) ubuf(buf[m++]).i;
   }
 }
 
@@ -333,6 +344,7 @@ void AtomVecCoccus::unpack_comm_vel(int n, int first, double *buf)
     biomass[i] = buf[m++];
     outer_radius[i] = buf[m++];
     outer_mass[i] = buf[m++];
+    //ancestor[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -356,6 +368,7 @@ int AtomVecCoccus::unpack_comm_hybrid(int n, int first, double *buf)
     biomass[i] = buf[m++];
     outer_radius[i] = buf[m++];
     outer_mass[i] = buf[m++];
+    //ancestor[i] = (int) ubuf(buf[m++]).i;
   }
   return m;
 }
@@ -452,6 +465,7 @@ int AtomVecCoccus::pack_border(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -476,6 +490,7 @@ int AtomVecCoccus::pack_border(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
     }
   }
 
@@ -509,6 +524,7 @@ int AtomVecCoccus::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = biomass[j];
       buf[m++] = outer_radius[j];
       buf[m++] = outer_mass[j];
+      //buf[m++] = ubuf(ancestor[j]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -538,8 +554,9 @@ int AtomVecCoccus::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = radius[j];
         buf[m++] = rmass[j];
         buf[m++] = biomass[j];
-	buf[m++] = outer_radius[j];
-	buf[m++] = outer_mass[j];
+        buf[m++] = outer_radius[j];
+        buf[m++] = outer_mass[j];
+        //buf[m++] = ubuf(ancestor[j]).d;
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
@@ -562,8 +579,9 @@ int AtomVecCoccus::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = radius[j];
         buf[m++] = rmass[j];
         buf[m++] = biomass[j];
-	buf[m++] = outer_radius[j];
-	buf[m++] = outer_mass[j];
+        buf[m++] = outer_radius[j];
+        buf[m++] = outer_mass[j];
+        //buf[m++] = ubuf(ancestor[j]).d;
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
@@ -601,6 +619,7 @@ int AtomVecCoccus::pack_border_hybrid(int n, int *list, double *buf)
     buf[m++] = biomass[j];
     buf[m++] = outer_radius[j];
     buf[m++] = outer_mass[j];
+    //buf[m++] = ancestor[j];
   }
   return m;
 }
@@ -626,6 +645,7 @@ void AtomVecCoccus::unpack_border(int n, int first, double *buf)
     biomass[i] = buf[m++];
     outer_radius[i] = buf[m++];
     outer_mass[i] = buf[m++];
+    //ancestor[i] = (int) ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -656,6 +676,7 @@ void AtomVecCoccus::unpack_border_vel(int n, int first, double *buf)
     biomass[i] = buf[m++];
     outer_radius[i] = buf[m++];
     outer_mass[i] = buf[m++];
+    //ancestor[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -712,6 +733,7 @@ int AtomVecCoccus::pack_exchange(int i, double *buf)
   buf[m++] = biomass[i];
   buf[m++] = outer_radius[i];
   buf[m++] = outer_mass[i];
+  buf[m++] = ubuf(ancestor[i]).d;
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -748,6 +770,7 @@ int AtomVecCoccus::unpack_exchange(double *buf)
   biomass[nlocal] = buf[m++];
   outer_radius[nlocal] = buf[m++];
   outer_mass[nlocal] = buf[m++];
+  ancestor[nlocal] = (int) ubuf(buf[m++]).i;
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -806,6 +829,7 @@ int AtomVecCoccus::pack_restart(int i, double *buf)
   buf[m++] = biomass[i];
   buf[m++] = outer_radius[i];
   buf[m++] = outer_mass[i];
+  //buf[m++] = ubuf(ancestor[i]).d;
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -848,6 +872,7 @@ int AtomVecCoccus::unpack_restart(double *buf)
   biomass[nlocal] = buf[m++];
   outer_radius[nlocal] = buf[m++];
   outer_mass[nlocal] = buf[m++];
+  //ancestor[nlocal] = (int) ubuf(buf[m++]).i;
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -886,6 +911,7 @@ void AtomVecCoccus::create_atom(int itype, double *coord)
 
   radius[nlocal] = 0.5;
   rmass[nlocal] = 4.0*MY_PI/3.0 * radius[nlocal]*radius[nlocal]*radius[nlocal];
+  //ancestor[nlocal] = 0;
   biomass[nlocal] = rmass[nlocal];
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
@@ -952,6 +978,9 @@ void AtomVecCoccus::data_atom(double *coord, imageint imagetmp, char **values)
     error->one(FLERR,"Biomass/Mass (dry/wet weight) ratio must be between 0-1");
   biomass[nlocal] = rmass[nlocal] * ratio;
 
+  printf("Creating atom from datafile tag is %d\n",tag[nlocal]);
+  ancestor[nlocal] = tag[nlocal];
+  printf("Creating atom from datafile ancestor is %d\n",ancestor[nlocal]);
   atom->nlocal++;
 }
 
@@ -989,6 +1018,7 @@ int AtomVecCoccus::data_atom_hybrid(int nlocal, char **values)
     error->one(FLERR,"Invalid biomass/Mass ratio in Atoms section of data file:"
 	"ratio < 0 or ratio > 1");
   biomass[nlocal] = rmass[nlocal] * ratio;
+  ancestor[nlocal] = tag[nlocal];
 
   return 4;
 }
@@ -1041,6 +1071,7 @@ void AtomVecCoccus::pack_data(double **buf)
     buf[i][9] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
     buf[i][10] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
     buf[i][11] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+    buf[i][12] = ubuf(ancestor[i]).d;
   }
 }
 
@@ -1055,7 +1086,8 @@ int AtomVecCoccus::pack_data_hybrid(int i, double *buf)
   else buf[1] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
   buf[2] = outer_radius[i];
   buf[3] = biomass[i] / rmass[i];
-  return 4;
+  //buf[4] = ubuf(ancestor[i]).d;
+  return 4;//5;
 }
 
 /* ----------------------------------------------------------------------
@@ -1066,12 +1098,12 @@ void AtomVecCoccus::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,TAGINT_FORMAT
-            " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
+            " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6],buf[i][7],buf[i][8],
             (int) ubuf(buf[i][9]).i,(int) ubuf(buf[i][10]).i,
-            (int) ubuf(buf[i][11]).i);
+            (int) ubuf(buf[i][11]).i,(int) ubuf(buf[i][12]).i);
 }
 
 /* ----------------------------------------------------------------------
@@ -1080,7 +1112,8 @@ void AtomVecCoccus::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecCoccus::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %d",buf[0],buf[1],buf[2],buf[3],
+          (int) ubuf(buf[4]).i);
   return 4;
 }
 
@@ -1153,6 +1186,7 @@ bigint AtomVecCoccus::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
+  if (atom->memcheck("ancestor")) bytes += memory->usage(ancestor,nmax);
   if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("biomass")) bytes += memory->usage(biomass,nmax);

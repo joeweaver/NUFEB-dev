@@ -68,6 +68,8 @@ void FixDivideCoccus::compute()
       if (atom->radius[i] * 2 >= diameter) {
 	double density = atom->rmass[i] /
 	  (4.0 * MY_PI / 3.0 * atom->radius[i] * atom->radius[i] * atom->radius[i]);
+        int parent_ancestor = atom->ancestor[i];
+        printf("Parent coccus tag %d with ancestor %d is about to divide.\n",atom->tag[i],atom->ancestor[i]);
 
         double split = 0.4 + (random->uniform() * 0.2);
         double parent_mass = atom->rmass[i] * split;
@@ -142,8 +144,9 @@ void FixDivideCoccus::compute()
 
         atom->avec->create_atom(atom->type[i], coord);
         int n = atom->nlocal - 1;
-
+        //printf("Created atom %d\n",atom->tag[n]);
         atom->tag[n] = 0;
+        //printf("New atom ancestor is now %d\n",atom->ancestor[n]);
         atom->mask[n] = atom->mask[i];
         atom->v[n][0] = atom->v[i][0];
         atom->v[n][1] = atom->v[i][1];
@@ -162,9 +165,10 @@ void FixDivideCoccus::compute()
         atom->radius[n] = child_radius;
         atom->outer_mass[n] = child_outer_mass;
         atom->outer_radius[n] = child_outer_radius;
-
+        atom->ancestor[n] = parent_ancestor;
+        //printf("New atom ancestor is now %d\n",atom->ancestor[n]);
         modify->create_attribute(n);
-
+        //printf("New atom ancestor is now %d\n",atom->ancestor[n]);
         delete[] coord;
       }
     }
