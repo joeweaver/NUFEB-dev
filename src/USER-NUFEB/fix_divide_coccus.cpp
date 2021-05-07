@@ -122,11 +122,11 @@ void FixDivideCoccus::compute()
         //}
         //else{
             //printf("Tracking generation number\n");
-        int flag;
+        int find_custom_flag;
         //printf("Grabbing custom vector\n");
-        int index = atom->find_custom("generation_number",flag);
+        int index = atom->find_custom("generation_number",find_custom_flag);
         //printf("Index %d, flag %d\n",index,flag);
-        if (index < 0 || flag != 0){
+        if (index < 0 || find_custom_flag != 0){
             printf("Custom vector not found\n");
         }
         else{
@@ -198,11 +198,10 @@ void FixDivideCoccus::compute()
         //}
         //else{
             //printf("Tracking generation number\n");
-        int flag;
         //printf("Grabbing custom vector\n");
-        int index = atom->find_custom("generation_number",flag);
-        //printf("Index %d, flag %d\n",index,flag);
-        if (index < 0 || flag != 0){
+        index = atom->find_custom("generation_number",find_custom_flag);
+        //printf("Index %d, flag %d\n",index,find_custom_flag);
+        if (index < 0 || find_custom_flag != 0){
             printf("Custom vector not found\n");
         }
         else{
