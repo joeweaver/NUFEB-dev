@@ -114,31 +114,17 @@ void FixDivideCoccus::compute()
         atom->x[i][1] = newy;
         atom->x[i][2] = newz;
 
+        // Determine if we're tracking the atom's generation number
+        int flag;
+        int gen_no_index = atom->find_custom("generation_number",flag);
+        bool track_generation = (gen_no_index >= 0 && flag == 0); 
+        
+        // Get the generation of the parent atom
         int parent_gen; 
-        //printf("Looking for generation number fix\n");
-        //int ifix =modify->find_fix("genno");
-        //if(ifix < 0){
-        //   printf("Not tracking generation number\n");
-        //}
-        //else{
-            //printf("Tracking generation number\n");
-        int find_custom_flag;
-        //printf("Grabbing custom vector\n");
-        int index = atom->find_custom("generation_number",find_custom_flag);
-        //printf("Index %d, flag %d\n",index,flag);
-        if (index < 0 || find_custom_flag != 0){
-            printf("Custom vector not found\n");
-        }
-        else{
-            //printf("Custom vector found\n");
-            int *gen_no = atom->ivector[index];
-            //gen_no[i] = 12;
+        if(track_generation){
+            int *gen_no = atom->ivector[gen_no_index];
             parent_gen = gen_no[i];
-            //printf("Got genno of atom: %d\n",i);
-            //printf("%d\n",0);
-            ///printf("%d\n",parent_gen);
         }
-        //}
 
         // create child
         double child_radius = pow(((6 * child_mass) / (density * MY_PI)), (1.0 / 3.0)) * 0.5;
@@ -191,33 +177,11 @@ void FixDivideCoccus::compute()
 
         modify->create_attribute(n);
 
-        //printf("Looking for generation number fix\n");
-        //ifix =modify->find_fix("genno");
-        //if(ifix < 0){
-        //    printf("Not tracking generation number\n");
-        //}
-        //else{
-            //printf("Tracking generation number\n");
-        //printf("Grabbing custom vector\n");
-        index = atom->find_custom("generation_number",find_custom_flag);
-        //printf("Index %d, flag %d\n",index,find_custom_flag);
-        if (index < 0 || find_custom_flag != 0){
-            printf("Custom vector not found\n");
+        // A child atoms generation is 1 more than its parent's
+        if(track_generation){
+            int *gen_no = atom->ivector[gen_no_index];
+            gen_no[n] = parent_gen + 1;
         }
-        else{
-            //printf("Custom vector found\n");
-            int *gen_no = atom->ivector[index];
-            //gen_no[i] = 12;
-            int gen = gen_no[n];
-            //printf("Got genno of child: %d\n",i);
-            //printf("%d\n",gen);
-            int new_gen = parent_gen + 1;
-            //printf("Setting generation of child to %d\n",new_gen);
-            gen_no[n] = new_gen;
-            //printf("Gen of child set to %d\n",gen_no[n]);
-        }
-        //}
-
 
         delete[] coord;
       }
