@@ -114,6 +114,32 @@ void FixDivideCoccus::compute()
         atom->x[i][1] = newy;
         atom->x[i][2] = newz;
 
+        int parent_gen; 
+        //printf("Looking for generation number fix\n");
+        //int ifix =modify->find_fix("genno");
+        //if(ifix < 0){
+        //   printf("Not tracking generation number\n");
+        //}
+        //else{
+            //printf("Tracking generation number\n");
+        int flag;
+        //printf("Grabbing custom vector\n");
+        int index = atom->find_custom("generation_number",flag);
+        //printf("Index %d, flag %d\n",index,flag);
+        if (index < 0 || flag != 0){
+            printf("Custom vector not found\n");
+        }
+        else{
+            //printf("Custom vector found\n");
+            int *gen_no = atom->ivector[index];
+            //gen_no[i] = 12;
+            parent_gen = gen_no[i];
+            //printf("Got genno of atom: %d\n",i);
+            //printf("%d\n",0);
+            ///printf("%d\n",parent_gen);
+        }
+        //}
+
         // create child
         double child_radius = pow(((6 * child_mass) / (density * MY_PI)), (1.0 / 3.0)) * 0.5;
         double child_outer_radius = pow((3.0 / (4.0 * MY_PI)) * ((child_mass / density) + (child_outer_mass / eps_density)), (1.0 / 3.0));
@@ -148,15 +174,15 @@ void FixDivideCoccus::compute()
         atom->v[n][0] = atom->v[i][0];
         atom->v[n][1] = atom->v[i][1];
         atom->v[n][2] = atom->v[i][2];
-	atom->f[n][0] = atom->f[i][0];
-	atom->f[n][1] = atom->f[i][1];
-	atom->f[n][2] = atom->f[i][2];
+    	atom->f[n][0] = atom->f[i][0];
+	    atom->f[n][1] = atom->f[i][1];
+	    atom->f[n][2] = atom->f[i][2];
         atom->omega[n][0] = atom->omega[i][0];
         atom->omega[n][1] = atom->omega[i][1];
         atom->omega[n][2] = atom->omega[i][2];
-	atom->torque[n][0] = atom->torque[i][0];
-	atom->torque[n][1] = atom->torque[i][1];
-	atom->torque[n][2] = atom->torque[i][2];
+        atom->torque[n][0] = atom->torque[i][0];
+        atom->torque[n][1] = atom->torque[i][1];
+        atom->torque[n][2] = atom->torque[i][2];
         atom->rmass[n] = child_mass;
         atom->biomass[n] = child_biomass;
         atom->radius[n] = child_radius;
@@ -164,6 +190,35 @@ void FixDivideCoccus::compute()
         atom->outer_radius[n] = child_outer_radius;
 
         modify->create_attribute(n);
+
+        //printf("Looking for generation number fix\n");
+        //ifix =modify->find_fix("genno");
+        //if(ifix < 0){
+        //    printf("Not tracking generation number\n");
+        //}
+        //else{
+            //printf("Tracking generation number\n");
+        int flag;
+        //printf("Grabbing custom vector\n");
+        int index = atom->find_custom("generation_number",flag);
+        //printf("Index %d, flag %d\n",index,flag);
+        if (index < 0 || flag != 0){
+            printf("Custom vector not found\n");
+        }
+        else{
+            //printf("Custom vector found\n");
+            int *gen_no = atom->ivector[index];
+            //gen_no[i] = 12;
+            int gen = gen_no[n];
+            //printf("Got genno of child: %d\n",i);
+            //printf("%d\n",gen);
+            int new_gen = parent_gen + 1;
+            //printf("Setting generation of child to %d\n",new_gen);
+            gen_no[n] = new_gen;
+            //printf("Gen of child set to %d\n",gen_no[n]);
+        }
+        //}
+
 
         delete[] coord;
       }
